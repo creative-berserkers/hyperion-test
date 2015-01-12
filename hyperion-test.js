@@ -1,13 +1,12 @@
 var hyperion = require('cb-hyperion').Server
 
-var server = new hyperion(8888)
+var port = process.env.PORT || 8080;
+var server = new hyperion(port,'/public/')
 var allBroadcast = server.registerBroadcast('all')
 
-var object = {}
+var object = []
 Object.observe(object, function(changes) {
-    changes.forEach(function(change) {
-        allBroadcast.send(change)
-    })
+    allBroadcast.send(changes)
 })
 
 server.registerNewConnection(function(ws){
@@ -17,6 +16,13 @@ server.registerNewConnection(function(ws){
 
 
 server.registerMethod('do', function(ws, msg){
-    object.test = msg
+    var counter = 0;
+    setInterval(function() {
+        object.prop1 = counter + 2
+        object.prop2 = String(counter + 4)
+
+        counter++
+    }, 10000);
+    
     console.log('do called')
 })
