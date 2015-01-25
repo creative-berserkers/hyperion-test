@@ -2,30 +2,38 @@ var hyperion = require('cb-hyperion').Server
 
 var port = process.env.PORT || 8080;
 var server = new hyperion(port,'/public/')
-var allBroadcast = server.registerBroadcast('all')
 
-var object = {
-    value : 12,
-    text : 'test'
+var board = {
+    players : ['player1', 'player2'],
+    text : 'test',
+    doSth : function(ws){
+        board.position.x = board.position.x++
+        board.text = 'hello world'
+        console.log('do called')
+        return board.text
+    }
 }
 
-
 server.registerNewConnection(function(ws){
-    allBroadcast.addTarget(ws)
     console.log('new connection registered');
 })
 
+server.registerObject('board',board)
 
-server.registerMethod('do', function(ws, msg){
-    var counter = 0;
-    setInterval(function() {
-        object.value = counter + 2
-        object.text = String(counter + 4)
-
-        counter++
-    }, 10000);
+var clients = {}
+server.registerObjectGenerator('player',function(ws){
+    if(!clients[ws]){
+        clients[ws] =  {
+            position: {
+                x : 10,
+                y : 13
+            },
+            move : function(dir){
+                console.log('moving '+dir)
+                return dir
+            }
+        }
+    }
     
-    console.log('do called')
+    return clients[ws]
 })
-
-server.registerObject('myObject',object)

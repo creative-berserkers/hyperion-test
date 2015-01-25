@@ -3,74 +3,110 @@ var Nautilus = Nautilus || {}
 Nautilus.createClient = function(conf) {
     var socket = conf.socket || new WebSocket(conf.host)
     var responsePromises = []
-    var broadcasts = []
+    var responseObject = null
     var objects = []
     var id = 0
-    
-    var client = {
-        call: function(name) {
-            var currId = id++
-            
-            var promise = new Promise(function(resolve, reject){
-                responsePromises[currId] = {
-                    resolve : resolve,
-                    reject : reject
+
+    function createProxyMethod(object, objectName, method) {
+        var curr = object
+        method.forEach(function(node) {
+            if (curr[node] === undefined) {
+                curr[node] = function() {
+                    var currId = id++
+
+                    var promise = new Promise(function(resolve, reject) {
+                        responsePromises[currId] = {
+                            resolve: resolve,
+                            reject: reject
+                        }
+                    });
+                    socket.send(JSON.stringify({
+                        type : 'object-call',    
+                        path : method,
+                        name : objectName,
+                        id : currId,
+                        args : Array.prototype.slice.call(arguments, 1)
+                    }))
+                    return promise
                 }
-            });
-            
-            socket.send(JSON.stringify({
-                type: 'call',
-                name: name,
-                id: currId,
-                args: Array.prototype.slice.call(arguments, 1)
-            }))
-            return promise
-        },
-        registerBroadcastHandler : function(name, callback, ctx){
-            broadcasts[name] = {
-                callback: callback,
-                ctx : ctx
             }
-        },
-        getObject : function(name){
-            var currId = id++
-            
-            var promise = new Promise(function(resolve, reject){
-                responsePromises[currId] = {
-                    resolve : resolve,
-                    reject : reject
+            else {
+                curr = curr[node]
+            }
+        })
+
+    }
+    
+    function applyChange(object, change){
+        if(change.type === 'update'){
+            var curr = object;
+            change.path.forEach(function(node){
+                if(change.path[change.path.length-1] === node){
+                    curr[node] = change.value
+                }
+                curr = curr[node]
+            })
+        }
+    }
+    
+    function applyChanges(object, changes){
+        changes.forEach(function(change){
+            applyChange(object, change)
+        })
+    }
+
+    var client = {
+        getObject: function(name) {
+            var promise = new Promise(function(resolve, reject) {
+                reponseObject = {
+                    resolve: resolve,
+                    reject: reject
                 }
             });
-            
+
             socket.send(JSON.stringify({
-                type : 'get-object',
-                name : name,
-                id : currId
+                type: 'get-object',
+                name: name
             }))
             return promise
         }
     }
-    
+
     socket.onopen = function(event) {
-        if(conf.onopen) conf.onopen(client);
+        if (conf.onopen) conf.onopen(client);
     }
 
     socket.onmessage = function(event) {
-        console.log(event)
-        var msg = JSON.parse(event.data)
-        if (msg.type === 'call-response') {
-            responsePromises[msg.id].resolve(msg.result)
-            delete responsePromises[msg.id]
+        function apply() {
+            var msg = JSON.parse(event.data)
+            console.log(msg)
+            if (msg.type === 'call-response') {
+                responsePromises[msg.id].resolve(msg.result)
+                delete responsePromises[msg.id]
+            }
+            if (msg.type === 'object-response') {
+                objects[msg.name] = msg.object
+                msg.methods.forEach(function(method) {
+                    createProxyMethod(msg.object, msg.name, method)
+                })
+                reponseObject.resolve(msg.object)
+            }
+            if (msg.type === 'object-broadcast') {
+                console.log('applying changes')
+                var object = objects[msg.name]
+                if(object){
+                    applyChanges(object, msg.changes)
+                } else {
+                    console.log('object not found '+msg.name)
+                }
+            }
         }
-        if (msg.type === 'object-response') {
-            objects[msg.name] = msg.object
-            responsePromises[msg.id].resolve(msg.object)
-            delete responsePromises[msg.id]
+        if (conf.onmessage) {
+            conf.onmessage(apply)
+        } else {
+            apply()
         }
-        if(msg.type === 'broadcast') {
-            var bc = broadcasts[msg.name]
-            if(bc) bc.callback.apply(bc.ctx, msg.args)
-        }
+        
     }
     return client
 }
