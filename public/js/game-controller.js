@@ -121,7 +121,7 @@ phonecatApp.controller('GameController', function($scope) {
         
         function updateCounter(){
             if(mouseDown){
-                $scope.board.move(game.input.x - 32, game.input.y - 32)
+                $scope.board.move(game.input.x, game.input.y)
             }
             var playerId = findPlayer($scope.board.data.players, $scope.board.data.sickId)
             
@@ -138,6 +138,8 @@ phonecatApp.controller('GameController', function($scope) {
             var playerGroup = game.add.group();
             playerGroup.x  = player.x
             playerGroup.y = player.y
+            playerGroup.pivot.x = 0.5
+            playerGroup.pivot.y = 0.5
             var sprite = game.add.image(-32, -32, 'mushroom');
             playerGroup.add(sprite)
             sprite.frame = 0
@@ -176,12 +178,26 @@ phonecatApp.controller('GameController', function($scope) {
                 }
             }
             
+            for(var i = 0; i < $scope.board.data.players.length; ++i){
+                if($scope.board.data.players[i].infected || $scope.board.data.players[i].id === $scope.board.data.sickId){
+                    if($scope.board.data.players[i].id === $scope.board.data.sickId){
+                        players[i].mySprite.scale.set(1.2,1.2)
+                    } else {
+                        players[i].mySprite.scale.set(0.5,0.5)
+                    }
+                    players[i].mySprite.frame = 1
+                } else {
+                    players[i].mySprite.scale.set(1,1)
+                    players[i].mySprite.frame = 0
+                }
+            }
+            
             
         }
 
         function render() {
 
-            game.debug.cameraInfo(game.camera, 32, 500);
+            //game.debug.cameraInfo(game.camera, 32, 500);
 
         }
     }

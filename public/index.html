@@ -32,7 +32,7 @@
         </div>
         <div class="col-xs-6 col-md-4">
           <ul class="players">
-            <li ng-repeat="player in board.data.players">
+            <li ng-repeat="player in board.data.players | orderBy:score">
               id: {{player.id}} name: {{player.name}} score: {{player.score}}
             </li>
           </ul>

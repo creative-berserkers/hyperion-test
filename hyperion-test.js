@@ -21,6 +21,7 @@ var board = {
         counter : 15,
         currentIll : '',
         sickId : 0,
+        distance : 0,
         players : []
     },
     text : 'test',
@@ -34,9 +35,10 @@ var board = {
         })
         if(!found){ 
             board.data.players.push({
-                x : Math.floor((Math.random() * 800) - 400),
-                y : Math.floor((Math.random() * 800) - 400),
+                x : Math.floor((Math.random() * 400) - 200),
+                y : Math.floor((Math.random() * 400) - 200),
                 score : 0,
+                infected : false,
                 name : name,
                 id : ws.data.id,
                 connected : true
@@ -62,6 +64,12 @@ var board = {
     }
 }
 
+function distance(a, b){
+    var dx = a.x - b.x
+    var dy = a.y - b.y 
+    return Math.sqrt(dx*dx + dy*dy)
+}
+
 setInterval(function(){
     board.data.counter--
     if(board.data.counter === 0){
@@ -77,7 +85,26 @@ setInterval(function(){
             }
         }
     }
+    
 },1000)
+
+setInterval(function(){
+    var sickPlayer = findPlayer(board.data.players, board.data.sickId)
+    board.data.players.forEach(function(player){
+        if(player.id !== sickPlayer.id){
+            var dist = distance(sickPlayer, player)
+            board.data.distance = dist
+            if(dist< 80){
+                sickPlayer.score++;
+                player.score--;
+                if(player.score < 0){
+                    player.score = 0
+                }
+                player.infected = true
+            }
+        }
+    })
+}, 500)
 
 server.registerNewConnection(function(ws){
     ws.data = {
