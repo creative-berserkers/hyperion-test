@@ -20,13 +20,16 @@ Nautilus.createClient = function(conf) {
                             reject: reject
                         }
                     });
-                    socket.send(JSON.stringify({
+                    var object = {
                         type : 'object-call',    
                         path : method,
                         name : objectName,
                         id : currId,
-                        args : Array.prototype.slice.call(arguments, 1)
-                    }))
+                        args : Array.prototype.slice.call(arguments, 0)
+                    }
+                    console.log('=>')
+                    console.log(object)
+                    socket.send(JSON.stringify(object))
                     return promise
                 }
             }
@@ -79,6 +82,7 @@ Nautilus.createClient = function(conf) {
     socket.onmessage = function(event) {
         function apply() {
             var msg = JSON.parse(event.data)
+            console.log('<=')
             console.log(msg)
             if (msg.type === 'call-response') {
                 responsePromises[msg.id].resolve(msg.result)

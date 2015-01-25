@@ -4,6 +4,8 @@ var phonecatApp = angular.module('gameApp', []);
 
 phonecatApp.controller('GameController', function ($scope) {
     
+    function noCall(){console.warn('call not reached')}
+    
     function onMessage(apply){
         console.log('onMessage')
         $scope.$apply(function () {
@@ -40,7 +42,8 @@ phonecatApp.controller('GameController', function ($scope) {
     })
     
     $scope.board = {
-        players : ['local']
+        players : ['local'],
+        join : noCall
     }
     $scope.playername = getCookie('playername')
     $scope.joinGame = function(playername){

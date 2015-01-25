@@ -2,19 +2,34 @@ var hyperion = require('cb-hyperion').Server
 
 var port = process.env.PORT || 8080;
 var server = new hyperion(port,'/public/')
-
+var playerId = 0
+var tmp = 0
 var board = {
-    players : ['player1', 'player2'],
+    players : [],
     text : 'test',
-    doSth : function(ws){
-        board.position.x = board.position.x++
-        board.text = 'hello world'
-        console.log('do called')
-        return board.text
+    join : function(ws, name){
+        var found = false
+        board.players.forEach(function(el){
+            if(el.id === ws.data.id){
+                el.name = name
+                found = true
+            }
+        })
+        if(!found){ 
+            board.players.push({
+                name : name,
+                id : ws.data.id
+            })
+        }
+        board.text = 'id: ' + String(tmp++)
+        return 'sucessfully joined'
     }
 }
 
 server.registerNewConnection(function(ws){
+    ws.data = {
+        id : playerId++
+    }
     console.log('new connection registered');
 })
 
@@ -28,7 +43,7 @@ server.registerObjectGenerator('player',function(ws){
                 x : 10,
                 y : 13
             },
-            move : function(dir){
+            move : function(ws,dir){
                 console.log('moving '+dir)
                 return dir
             }
