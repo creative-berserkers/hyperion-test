@@ -42,10 +42,18 @@ Nautilus.createClient = function(conf) {
     
     function applyChange(object, change){
         if(change.type === 'update'){
-            var curr = object;
+            var curr = object
             change.path.forEach(function(node){
                 if(change.path[change.path.length-1] === node){
                     curr[node] = change.value
+                }
+                curr = curr[node]
+            })
+        } else if(change.type === 'splice'){
+            var curr = object
+            change.path.forEach(function(node){
+                if(change.path[change.path.length-1] === node){
+                    curr[node].splice.apply(curr[node],[change.index,change.removedCount].concat(change.added))
                 }
                 curr = curr[node]
             })

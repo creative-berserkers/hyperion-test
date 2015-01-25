@@ -25,11 +25,10 @@
             </span>
           </div><!-- /input-group -->
         </div>
-        {{playername}}
         <div class="col-xs-6 col-md-4">
           <ul class="players">
-            <li ng-repeat="player in board.players">
-              <p>{{player}}</p>
+            <li ng-repeat="player in board.data.players">
+              id: {{player.id}} name: {{player.name}}
             </li>
           </ul>
         </div>

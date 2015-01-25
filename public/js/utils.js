@@ -1,3 +1,6 @@
+function eraseCookie(name) {
+    createCookie(name,"",-1);
+}
 var createCookie = function(name, value, days) {
     var expires;
     if (days) {

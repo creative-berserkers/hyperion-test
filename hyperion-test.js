@@ -5,18 +5,20 @@ var server = new hyperion(port,'/public/')
 var playerId = 0
 var tmp = 0
 var board = {
-    players : [],
+    data :{
+        players : []
+    },
     text : 'test',
     join : function(ws, name){
         var found = false
-        board.players.forEach(function(el){
+        board.data.players.forEach(function(el){
             if(el.id === ws.data.id){
                 el.name = name
                 found = true
             }
         })
         if(!found){ 
-            board.players.push({
+            board.data.players.push({
                 name : name,
                 id : ws.data.id
             })

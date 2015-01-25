@@ -42,12 +42,18 @@ phonecatApp.controller('GameController', function ($scope) {
     })
     
     $scope.board = {
-        players : ['local'],
+        data : {
+            players : []
+        },
         join : noCall
     }
     $scope.playername = getCookie('playername')
     $scope.joinGame = function(playername){
+        if(getCookie('playername') !== ''){
+            eraseCookie('playername')
+        }
         createCookie('playername',playername,10)
+        $scope.playername = playername
     }
     
     
