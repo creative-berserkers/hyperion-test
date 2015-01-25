@@ -11,6 +11,7 @@
     <script type="text/javascript" src="js/multiobserve.js"></script>
     <script type="text/javascript" src="js/nautilus.js"></script>
     <script type="text/javascript" src="js/client.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/phaser/2.2.2/phaser.min.js"></script>
     <script type="text/javascript" src="js/game-controller.js"></script>
     <title>Bootstrap 101 Template</title>
   </head>
@@ -18,17 +19,21 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-xs-12 col-md-8">
-          <div class="input-group">
+          <div class="input-group" ng-show="!joined">
             <input type="text" class="form-control" placeholder="Enter your name..." ng-model="playername">
             <span class="input-group-btn">
-              <button class="btn btn-default" type="button" ng-click="board.join(playername)">Join!</button>
+              <button class="btn btn-default" type="button" ng-click="joinGame(playername)" ng-disabled="playername.length === 0">Join!</button>
             </span>
           </div><!-- /input-group -->
+          <div ng-show="joined">
+          <h2>{{board.data.counter}} Current sick player: {{board.data.currentIll}}</h2>
+          <div id="game-canvas"></div>
+          </div>
         </div>
         <div class="col-xs-6 col-md-4">
           <ul class="players">
             <li ng-repeat="player in board.data.players">
-              id: {{player.id}} name: {{player.name}}
+              id: {{player.id}} name: {{player.name}} score: {{player.score}}
             </li>
           </ul>
         </div>
